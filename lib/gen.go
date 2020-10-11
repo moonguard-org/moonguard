@@ -1,8 +1,7 @@
-package main
+package lib
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"path"
@@ -104,36 +103,37 @@ func validateLangs(langs []string) error {
 	return nil
 }
 
-func main() {
-	app := &cli.App{
-		Name:  "moonguard-gen",
-		Usage: "Generate gRPC client libraries",
-		Action: func(c *cli.Context) error {
-			inputSourcesStr := c.Args().Get(0)
-			sources, err := findInputSources(inputSourcesStr)
-			if err != nil {
-				return err
-			}
+func genAction(c *cli.Context) error {
+	inputSourcesStr := c.Args().Get(0)
+	sources, err := findInputSources(inputSourcesStr)
+	if err != nil {
+		return err
+	}
 
-			outdir := c.String("out")
-			if outdir == "" {
-				outdir = defaultOut
-			}
+	outdir := c.String("out")
+	if outdir == "" {
+		outdir = defaultOut
+	}
 
-			langs := c.StringSlice("languages")
-			err = validateLangs(langs)
-			if err != nil {
-				return err
-			}
+	langs := c.StringSlice("languages")
+	err = validateLangs(langs)
+	if err != nil {
+		return err
+	}
 
-			cmd, err := buildGrpcCommand(sources, langs, outdir)
-			if err != nil {
-				return err
-			}
+	cmd, err := buildGrpcCommand(sources, langs, outdir)
+	if err != nil {
+		return err
+	}
 
-			return cmd.Run()
-		},
+	return cmd.Run()
+}
 
+func GetGenCommand() *cli.Command {
+	return &cli.Command{
+		Name:   "gen",
+		Action: genAction,
+		Usage:  "generate moonguard gRPC clients",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "out",
@@ -147,10 +147,5 @@ func main() {
 				Required: true,
 			},
 		},
-	}
-
-	err := app.Run(os.Args)
-	if err != nil {
-		log.Fatal(err)
 	}
 }
