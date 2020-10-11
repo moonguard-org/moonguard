@@ -11,13 +11,39 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const defaultOut = "./moonguard-clients"
+
 type langConfig struct {
 	execFlag string
 }
 
 var supportedLangs = map[string]langConfig{
-	"go": langConfig{
+	"go": {
 		execFlag: "--go_out=plugins=grpc:",
+	},
+	"cpp": {
+		execFlag: "--cpp_out=",
+	},
+	"csharp": {
+		execFlag: "--csharp_out=",
+	},
+	"java": {
+		execFlag: "--java_out=",
+	},
+	"js": {
+		execFlag: "--js_out=",
+	},
+	"objc": {
+		execFlag: "--objc_out=",
+	},
+	"php": {
+		execFlag: "--php_out=",
+	},
+	"python": {
+		execFlag: "--python_out=",
+	},
+	"ruby": {
+		execFlag: "--ruby_out=",
 	},
 }
 
@@ -30,7 +56,11 @@ func buildGrpcCommand(sources []string, langs []string, outDir string) (*exec.Cm
 
 	for _, lang := range langs {
 		cfg := supportedLangs[lang]
-		flag := cfg.execFlag + path.Join(outDir, "/go")
+		langOutdir := path.Join(outDir, lang)
+
+		os.MkdirAll(langOutdir, 0777)
+
+		flag := cfg.execFlag + langOutdir
 		args = append(args, flag)
 	}
 
@@ -42,6 +72,8 @@ func buildGrpcCommand(sources []string, langs []string, outDir string) (*exec.Cm
 		Stderr: os.Stderr,
 		Args:   args,
 	}
+
+	fmt.Printf("%v", args)
 
 	return cmd, nil
 }
@@ -65,7 +97,7 @@ func findInputSources(pattern string) ([]string, error) {
 
 func validateLangs(langs []string) error {
 	for _, lang := range langs {
-		if _, ok = supportedLangs[lang]; ok != true {
+		if _, ok := supportedLangs[lang]; ok != true {
 			return fmt.Errorf("`%s` is not yet supported by the moonguard client generator", lang)
 		}
 	}
@@ -83,13 +115,18 @@ func main() {
 				return err
 			}
 
+			outdir := c.String("out")
+			if outdir == "" {
+				outdir = defaultOut
+			}
+
 			langs := c.StringSlice("languages")
 			err = validateLangs(langs)
 			if err != nil {
 				return err
 			}
 
-			cmd, err := buildGrpcCommand(sources, langs, c.String("out"))
+			cmd, err := buildGrpcCommand(sources, langs, outdir)
 			if err != nil {
 				return err
 			}
@@ -101,7 +138,7 @@ func main() {
 			&cli.StringFlag{
 				Name:        "out",
 				Usage:       "Output directory for generated clients",
-				DefaultText: "./moonguard-clients",
+				DefaultText: defaultOut,
 			},
 			&cli.StringSliceFlag{
 				Name:     "languages",
