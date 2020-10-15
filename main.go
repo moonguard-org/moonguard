@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/bpicolo/moonguard/lib"
+	"github.com/moonguard-org/moonguard/commands"
 	"github.com/urfave/cli/v2"
 )
 
@@ -13,7 +13,8 @@ func main() {
 		Name:  "moonguard",
 		Usage: "gRPC tooling",
 		Commands: []*cli.Command{
-			lib.GetGenCommand(),
+			commands.GetGenCommand(),
+			commands.GetInitializeCommand(),
 		},
 	}
 

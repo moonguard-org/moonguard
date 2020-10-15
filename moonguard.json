@@ -1,0 +1,4 @@
+{
+    "serviceName": "moonguard-cli",
+    "protoDefinitions": "examples/proto/**/*.proto"
+}
